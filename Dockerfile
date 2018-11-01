@@ -5,6 +5,7 @@ RUN apt-get update && \
     apt-get install -y curl supervisor software-properties-common python-software-properties && \
     add-apt-repository ppa:max-c-lv/shadowsocks-libev && apt-get update && \
     apt-get install -y shadowsocks-libev && \
+    curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash - && \
     apt-get install -y nodejs
 
 RUN npm i -g shadowsocks-manager --unsafe-perm
