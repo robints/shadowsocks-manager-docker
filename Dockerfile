@@ -1,7 +1,6 @@
 FROM ubuntu:16.04
 
-ADD sources.list /etc/apt/sources.list
-
+#ADD sources.list /etc/apt/sources.list
 RUN apt-get update && \
     apt-get install -y curl supervisor software-properties-common python-software-properties && \
     add-apt-repository ppa:max-c-lv/shadowsocks-libev && apt-get update && \
