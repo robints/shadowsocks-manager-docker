@@ -7,9 +7,9 @@ RUN apt-get update && \
     apt-get install -y shadowsocks-libev && \
     apt-get install -y nodejs
 
-#RUN npm i -g shadowsocks-manager --unsafe-perm
+RUN npm i -g shadowsocks-manager --unsafe-perm
 
-ADD code /var/www/shadowsocks-manager
+#ADD code /var/www/shadowsocks-manager
 ADD config /etc/shadowsocks
 ADD supervisor /etc/supervisor
 ADD entry.sh .
