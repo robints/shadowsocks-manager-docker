@@ -11,46 +11,80 @@ const moment = require('moment');
 const minute = 1;
 const time = minute * 60 * 1000;
 
+let accountInfo = {};
+
+const updateAccountInfo = async () => {
+  const accounts = await knex('account_plugin').select().where({});
+  accountInfo = {};
+  accounts.forEach(account => {
+    accountInfo[account.port] = account.id;
+  });
+  return;
+};
+
+const updateAccountFlow = async (serverId, accountId, flow) => {
+  const exists = await knex('account_flow').where({
+    serverId,
+    accountId,
+  }).then(success => success[0]);
+  if(!exists) { return; }
+  await knex('account_flow').update({
+    flow: exists.flow + flow,
+    updateTime: Date.now(),
+  }).where({
+    serverId,
+    accountId,
+  });
+};
+
 const saveFlow = async () => {
   try {
-    const servers = await knex('server').select(['id', 'name', 'host', 'port', 'password']);
-    const promises = [];
-    servers.forEach(server => {
-      const saveServerFlow = async server => {
-        const lastestFlow = await knex('saveFlow').select(['time']).where({
-          id: server.id,
-        }).orderBy('time', 'desc').limit(1);
-        if(lastestFlow.length === 0 || Date.now() - lastestFlow[0].time >= time) {
-          const options = {
-            clear: true,
+    const servers = await knex('server').select(['id', 'name', 'host', 'port', 'password', 'shift']);
+    await updateAccountInfo();
+    const saveServerFlow = async server => {
+      const lastestFlow = await knex('saveFlow').select(['time']).where({
+        id: server.id,
+      }).orderBy('time', 'desc').limit(1);
+      if(lastestFlow.length === 0 || Date.now() - lastestFlow[0].time >= time) {
+        const options = {
+          clear: true,
+        };
+        let flow = await manager.send({
+          command: 'flow',
+          options,
+        }, {
+          host: server.host,
+          port: server.port,
+          password: server.password,
+        });
+        flow = flow.map(f => {
+          return {
+            id: server.id,
+            accountId: accountInfo[f.port - server.shift] || 0,
+            port: f.port,
+            flow: f.sumFlow,
+            time: Date.now(),
           };
-          let flow = await manager.send({
-            command: 'flow',
-            options: options,
-          }, {
-            host: server.host,
-            port: server.port,
-            password: server.password,
-          });
-          flow = flow.map(f => {
-            return {
-              id: server.id,
-              port: f.port,
-              flow: f.sumFlow,
-              time: Date.now(),
-            };
-          }).filter(f => {
-            return f.flow > 0;
-          });
-          if(flow.length === 0) {
-            return;
-          }
-          await knex('saveFlow').insert(flow);
+        }).filter(f => {
+          return f.flow > 0;
+        });
+        if(flow.length === 0) {
+          return;
         }
-      };
-      promises.push(saveServerFlow(server));
-    });
-    await Promise.all(promises);
+        flow.forEach(async f => {
+          await updateAccountFlow(f.id, f.accountId, f.flow);
+        });
+        const insertPromises = [];
+        for(let i = 0; i < Math.ceil(flow.length / 50); i++) {
+          const insert = knex('saveFlow').insert(flow.slice(i * 50, i * 50 + 50));
+          insertPromises.push(insert);
+        }
+        await Promise.all(insertPromises);
+      }
+    };
+    for(const server of servers) {
+      await saveServerFlow(server).catch();
+    }
   } catch(err) {
     logger.error(err);
     return;

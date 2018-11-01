@@ -6,17 +6,20 @@ const log4js = require('log4js');
 const logger = log4js.getLogger('flowSaver');
 
 const createTable = async () => {
-  if(config.empty) {
-    await knex.schema.dropTableIfExists(tableName);
+  const hasTable = await knex.schema.hasTable(tableName);
+  if(!hasTable) {
+    await knex.schema.createTable(tableName, function(table) {
+      table.increments('id');
+      table.string('name');
+      table.string('host');
+      table.integer('port');
+      table.string('password');
+      table.float('scale').defaultTo(1);
+      table.string('method').defaultTo('aes-256-cfb');
+      table.string('comment').defaultTo('');
+      table.integer('shift').defaultTo(0);
+    });
   }
-  await knex.schema.createTableIfNotExists(tableName, function(table) {
-    table.increments('id');
-    table.string('name');
-    table.string('host');
-    table.integer('port');
-    table.string('password');
-    table.string('method').defaultTo('aes-256-cfb');
-  });
   const list = await knex('server').select(['name', 'host', 'port', 'password']);
   if(list.length === 0) {
     const host = config.manager.address.split(':')[0];

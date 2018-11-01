@@ -12,13 +12,13 @@
                     </div>
                 </md-toolbar>
                 <md-list>
-                    <md-list-item ng-repeat-start="menu in menus" ng-if="menu.name !== 'divider'" ng-click="menuClick($index)">
+                    <md-list-item ng-repeat-start="menu in menus" ng-if="menu.name !== 'divider'" ng-click="menuClick($index)" ng-hide="menu.hide">
                         <md-item-content md-ink-ripple layout="row" layout-align="start center">
                             <div class="inset">
                                 <md-icon class="material-icons">{{menu.icon}}</md-icon>
                             </div>
                             <div class="inset">
-                                {{menu.name}}
+                                {{ menu.name | translate }}
                             </div>
                         </md-item-content>
                     </md-list-item>
@@ -26,7 +26,7 @@
                 </md-list>
             </div>
         </md-content>
-        <div style="position: absolute; left: 5px; bottom: 5px; color:#555; font-size:12px;">{{version}}</div>
+        <div style="position: absolute; left: 5px; bottom: 5px; color:#555; font-size:12px;">{{ config.version }}</div>
     </md-sidenav>
     <div flex layout="column">
         <div>
@@ -38,7 +38,7 @@
                     <md-button class="md-icon-button" aria-label="cancel search" ng-click="cancelSearch()" ng-if="menuSearch.input">
                         <i class="material-icons">arrow_back</i>
                     </md-button>
-                    <div ng-if="!menuSearch.input">{{title}}</div>
+                    <div ng-if="!menuSearch.input">{{ title | translate }}</div>
                     <span flex ng-if="!menuSearch.input"></span>
                     <md-input-container class="search-input" flex ng-if="menuSearch.input">
                         <label>&nbsp;</label>
@@ -50,6 +50,9 @@
                     <md-button class="md-icon-button" aria-label="menu right search" ng-if="menuSearchButtonIcon && !menuSearch.input" ng-click="menuSearchButtonClick()">
                         <i class="material-icons">{{menuSearchButtonIcon}}</i>
                     </md-button>
+                    <md-button aria-label="language menu" class="md-icon-button" ng-click="chooseLanguage()" ng-if="currentState === 'admin.index'">
+                        <md-icon class="material-icons">language</md-icon>
+                    </md-button>
                 </div>
             </md-toolbar>
         </div>
@@ -59,13 +62,13 @@
                 <md-content style="background-color: #FAFAFA; overflow-x: hidden;">
                     <div layout="column" layout-align="center start">
                         <md-list style="width: 100%;">
-                            <md-list-item ng-repeat-start="menu in menus" ng-if="menu.name !== 'divider'" ng-click="menuClick($index)">
+                            <md-list-item ng-repeat-start="menu in menus" ng-if="menu.name !== 'divider'" ng-click="menuClick($index)" ng-hide="menu.hide">
                                 <md-item-content style="padding-left: 0px;" md-ink-ripple layout="row" layout-align="start center">
                                     <div style="padding-left: 0px;" class="inset">
                                         <md-icon class="material-icons">{{menu.icon}}</md-icon>
                                     </div>
                                     <div class="inset" ng-show="innerSideNav">
-                                        {{menu.name}}
+                                        {{ menu.name | translate }}
                                     </div>
                                 </md-item-content>
                             </md-list-item>
@@ -73,7 +76,7 @@
                         </md-list>
                     </div>
                 </md-content>
-                <div style="position: absolute; left: 5px; bottom: 5px; color:#555; font-size:12px;">{{version}}</div>
+                <div style="position: absolute; left: 5px; bottom: 5px; color:#555; font-size:12px;">{{ config.version }}</div>
             </md-sidenav>
             <md-content flex layout="row">
                 <div ui-view flex autoscroll="true"></div>
@@ -82,6 +85,6 @@
     </div>
     </section>
     <md-button ng-show="fabButton" class="md-fab md-fab-bottom-right" ng-click="fabButtonClick()">
-        <md-icon class="material-icons">add</md-icon>
+        <md-icon class="material-icons">{{ fabButtonIcon || 'add' }}</md-icon>
     </md-button>
 </div>

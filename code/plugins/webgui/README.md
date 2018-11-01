@@ -13,7 +13,6 @@ This plugin provide a webgui to control shadowsocks.
 
     ```
     type: m
-    empty: false
 
     manager:
       address: 127.0.0.1:6002
@@ -26,25 +25,10 @@ This plugin provide a webgui to control shadowsocks.
         use: true
       account:
         use: true
-        pay:
-          hour:
-            price: 0.03
-            flow: 500000000
-          day:
-            price: 0.5
-            flow: 7000000000
-          week:
-            price: 3
-            flow: 50000000000
-          month:
-            price: 10
-            flow: 200000000000
-          season:
-            price: 30
-            flow: 200000000000
-          year:
-            price: 120
-            flow: 200000000000
+      macAccount:
+        use: true
+      group:
+        use: true
       email:
         use: true
         username: 'username'
@@ -55,15 +39,27 @@ This plugin provide a webgui to control shadowsocks.
         host: '0.0.0.0'
         port: '80'
         site: 'http://yourwebsite.com'
+        # cdn: 'http://xxx.xxx.com'
+        # icon: 'icon.png'
+        # skin: 'default'
+        # googleAnalytics: 'UA-xxxxxxxx-x'
         gcmSenderId: '456102641793'
         gcmAPIKey: 'AAAAGzzdqrE:XXXXXXXXXXXXXX'
-      alipay:
-        use: true
-        appid: 2015012104922471
-        notifyUrl: ''
-        merchantPrivateKey: 'xxxxxxxxxxxx'
-        alipayPublicKey: 'xxxxxxxxxxx'
-        gatewayUrl: 'https://openapi.alipay.com/gateway.do'
+      # alipay:
+      #   use: true
+      #   appid: 2015012104922471
+      #   notifyUrl: 'http://yourwebsite.com/api/user/alipay/callback'
+      #   merchantPrivateKey: 'xxxxxxxxxxxx'
+      #   alipayPublicKey: 'xxxxxxxxxxx'
+      #   gatewayUrl: 'https://openapi.alipay.com/gateway.do'
+      # webgui_telegram:
+      #   use: true
+      #   token: '191374681:AAw6oaVPR4nnY7T4CtW78QX-Xy2Q5WD3wmZ'
+      # paypal:
+      #   use: true
+      #   mode: 'live' # sandbox or live
+      #   client_id: 'At9xcGd1t5L6OrICKNnp2g9'
+      #   client_secret: 'EP40s6pQAZmqp_G_nrU9kKY4XaZph'
 
     db: 'webgui.sqlite'
     ```

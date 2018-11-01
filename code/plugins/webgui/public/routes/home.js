@@ -1,58 +1,63 @@
 const app = angular.module('app');
-
-app.config(['$urlRouterProvider', '$locationProvider',
-  ($urlRouterProvider, $locationProvider) => {
-    $locationProvider.html5Mode(true);
-    $urlRouterProvider
-      .when('/', '/home/index')
-      .otherwise('/home/index');
-  }
-]);
+const window = require('window');
+const cdn = window.cdn || '';
 
 app.config(['$stateProvider', $stateProvider => {
   $stateProvider
     .state('home', {
       url: '/home',
       abstract: true,
-      templateUrl: '/public/views/home/home.html',
+      templateUrl: `${ cdn }/public/views/home/home.html`,
+      resolve: {
+        myConfig: ['$http', 'configManager', ($http, configManager) => {
+          if(configManager.getConfig().version) { return; }
+          return $http.get('/api/home/login').then(success => {
+            configManager.setConfig(success.data);
+          });
+        }]
+      },
     })
     .state('home.index', {
       url: '/index',
       controller: 'HomeIndexController',
-      templateUrl: '/public/views/home/index.html',
+      templateUrl: `${ cdn }/public/views/home/index.html`,
     })
     .state('home.login', {
       url: '/login',
       controller: 'HomeLoginController',
-      templateUrl: '/public/views/home/login.html',
+      templateUrl: `${ cdn }/public/views/home/login.html`,
+    })
+    .state('home.macLogin', {
+      url: '/login/:mac',
+      controller: 'HomeMacLoginController',
+      templateUrl: `${ cdn }/public/views/home/macLogin.html`,
+    })
+    .state('home.telegramLogin', {
+      url: '/login/telegram/:token',
+      controller: 'HomeTelegramLoginController',
+      templateUrl: `${ cdn }/public/views/home/telegramLogin.html`,
     })
     .state('home.signup', {
       url: '/signup',
       controller: 'HomeSignupController',
-      templateUrl: '/public/views/home/signup.html',
+      templateUrl: `${ cdn }/public/views/home/signup.html`,
     })
     .state('home.resetPassword', {
       url: '/password/reset/:token',
       controller: 'HomeResetPasswordController',
-      templateUrl: '/public/views/home/resetPassword.html',
-    });
+      templateUrl: `${ cdn }/public/views/home/resetPassword.html`,
+    })
+    .state('home.refInput', {
+      url: '/ref',
+      controller: 'HomeRefInputController',
+      templateUrl: `${ cdn }/public/views/home/refInput.html`,
+    })
+    .state('home.ref', {
+      url: '/ref/:refId',
+      controller: 'HomeRefController',
+      templateUrl: `${ cdn }/public/views/home/ref.html`,
+    })
+    ;
   }
 ]);
 
-app.service('authInterceptor', ['$q', '$localStorage', function($q, $localStorage) {
-  const service = this;
-  service.responseError = function(response) {
-    if (response.status == 401) {
-      $localStorage.home = {};
-      $localStorage.admin = {};
-      $localStorage.user = {};
-      window.location = '/';
-    }
-    return $q.reject(response);
-  };
-}])
-.config(['$httpProvider', '$compileProvider', ($httpProvider, $compileProvider) => {
-  $httpProvider.interceptors.push('authInterceptor');
-  $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|http|ss):/);
-}])
-;

@@ -19,9 +19,14 @@ If you want to use the old version, please switch to [this branch](https://githu
 
 [https://wall.gyteng.com](https://wall.gyteng.com)
 
+## FreeAccount Demo:
+
+[https://free.gyteng.com](https://free.gyteng.com)
+
+
 ## Dependencies
 
-Node.js 6.*
+Node.js 8.*
 
 ## Install
 
@@ -38,6 +43,10 @@ use `node server.js` to run this program.
 ```
 npm i -g shadowsocks-manager
 ```
+You may need to use the `--unsafe-perm` flag if you receive an permission error
+```
+npm i -g shadowsocks-manager --unsafe-perm
+```
 use `ssmgr` to run this program.
 
 ### From docker:
@@ -50,31 +59,35 @@ docker run --name ssmgr -idt -v ~/.ssmgr:/root/.ssmgr --net=host gyteng/ssmgr [s
 here is the `Dockerfile`
 
 ```
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 MAINTAINER gyteng <igyteng@gmail.com>
 RUN apt-get update && \
-    apt-get install curl git sudo -y && \
-    curl -sL https://deb.nodesource.com/setup_6.x | bash - && \
-    apt-get install -y nodejs && \
-    npm i -g shadowsocks-manager && \
-    git clone https://github.com/shadowsocks/shadowsocks-libev.git ~/shadowsocks && \
-    mkdir -p ~/build-area/ && \
-    cp ~/shadowsocks/scripts/build_deb.sh ~/build-area/ && \
-    cd ~/build-area && \
-    ./build_deb.sh
-ENTRYPOINT ["/usr/bin/ssmgr"]
+    export DEBIAN_FRONTEND=noninteractive && \
+    apt-get install tzdata iproute2 curl git sudo software-properties-common python-pip -y && \
+    pip install git+https://github.com/shadowsocks/shadowsocks.git@master && \
+    curl -sL https://deb.nodesource.com/setup_8.x | bash - && \
+    apt-get install -y nodejs shadowsocks-libev && \
+    npm i -g shadowsocks-manager --unsafe-perm && \
+    echo "Asia/Shanghai" > /etc/timezone && \
+    rm /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
+CMD ["/usr/bin/ssmgr"]
 ```
 
 ### Usage
 1. Start shadowsocks with [manager API](https://github.com/shadowsocks/shadowsocks/wiki/Manage-Multiple-Users), it supports `shadowsocks-python` and `shadowsocks-libev`.
 For example, you can run this command:  
-`ss-manager -m aes-256-cfb -u --manager-address 127.0.0.1:6001`
+```
+ss-manager -m aes-256-cfb -u --manager-address 127.0.0.1:6001
+ or
+ssserver -m aes-256-cfb -p 12345 -k abcedf --manager-address 127.0.0.1:6001
+```
 2. run ssmgr with type s:
 
   config file:  
   ```
   type: s
-  empty: false
+
   shadowsocks:
     address: 127.0.0.1:6001
   manager:
@@ -124,15 +137,11 @@ The listening address in `--manager-address` of step 1 and in `shadowsocks -> ad
 ```
 
 ### Plugins
-`[================100%]` [cli](https://github.com/shadowsocks/shadowsocks-manager/blob/master/plugins/cli/README.md)  
-`[================100%]` [telegram](https://github.com/shadowsocks/shadowsocks-manager/blob/master/plugins/telegram/README.md)  
-`[================100%]` [flowSaver](https://github.com/shadowsocks/shadowsocks-manager/blob/master/plugins/flowSaver/README.md)  
-`[================100%]` [email]()  
-`[================100%]` [user]()  
-`[================100%]` [freeAccount](https://github.com/shadowsocks/shadowsocks-manager/blob/master/plugins/freeAccount/README.md)  
-`[================100%]` [account]()  
-`[===============90%--]` [webgui](https://github.com/shadowsocks/shadowsocks-manager/blob/master/plugins/webgui/README.md)  
-`[================100%]` [alipay]()  
+
+[telegram](https://github.com/shadowsocks/shadowsocks-manager/blob/master/plugins/telegram/README.md)  
+[freeAccount](https://github.com/shadowsocks/shadowsocks-manager/blob/master/plugins/freeAccount/README.md)  
+[freeAccountMiner](https://github.com/shadowsocks/shadowsocks-manager/blob/master/plugins/freeAccountMiner/README.md)  
+[webgui](https://github.com/shadowsocks/shadowsocks-manager/blob/master/plugins/webgui/README.md)  
 
 ### Parameter
 
@@ -147,7 +156,6 @@ Usage: ssmgr [options]
     -V, --version                output the version number
     -c, --config [file]          config file, default: ~/.ssmgr/default.yml
     -d, --db [file]              sqlite3 file, sample: ~/.ssmgr/db.sqlite
-    -e, --empty                  clean database
     -t, --type [type]            type, s for server side, m for manager side
     -s, --shadowsocks [address]  ss-manager address, sample: 127.0.0.1:6001
     -m, --manager [address]      manager address, sample: 0.0.0.0:6002
@@ -158,8 +166,26 @@ Usage: ssmgr [options]
 
 First, ssmgr will read the config file in `--config`, and other parameters(`-detsmp`) will replace the config file values.
 
+### Translate
+
+If your want to help to translate it to other languages, please edit files [here](https://github.com/shadowsocks/shadowsocks-manager/tree/dev/plugins/webgui/public/translate) and give me a pull request.
+
 ### Telegram
 Join the group if you have some problem: [https://t.me/ssmgr](https://t.me/ssmgr)
+
+### VPS recommendation
+
+* [Linode](https://www.linode.com/?r=bbc24323b3adaf3d74f242fd958d91b55cc6fdea)
+
+* [DigitalOcean](https://m.do.co/c/d43891b79a52)
+
+* [Vultr](http://www.vultr.com/?ref=6926595)
+
+* [AlibabaCloud](https://account-intl.aliyun.com/register/intl_register.htm?biz_params=%7B%22intl%22%3A%22%7B%5C%22referralCode%5C%22%3A%5C%22koa26v%5C%22%7D%22%7D)
+
+* [BandwagonHost](https://bandwagonhost.com/aff.php?aff=19999)
+
+* [dediserve](https://manage.dediserve.com/?affid=841)
 
 ### Donate
 If you find this project helpful, please consider making a donation:  

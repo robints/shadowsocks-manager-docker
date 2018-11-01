@@ -3,43 +3,43 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=1">
+    <meta name="format-detection" content="telephone=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Shadowsocks-Manager">
-    <link rel="apple-touch-startup-image" href="/libs/favicon.png">
-    <link rel="apple-touch-icon" href="/libs/favicon.png">
-    <meta name="msapplication-TileImage" content="/libs/favicon.png">
-    <meta name="msapplication-TileColor" content="#3F51B5">
-    <meta name="theme-color" content="#3F51B5">
-    <link rel="stylesheet" href="/libs/style.css">
-    <link rel="stylesheet" href="/libs/angular-material.min.css">
-    <link rel="shortcut icon" href="/libs/favicon.png">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="<%= title%>">
+    <link rel="apple-touch-startup-image" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <meta name="msapplication-TileImage" content="/favicon.png">
+    <meta name="msapplication-TileColor" content="<%= config.browserColor%>">
+    <meta name="theme-color" content="<%= config.browserColor%>">
+    <link rel="stylesheet" href="<%= cdn%>/libs/style.css">
+    <link rel="stylesheet" href="<%= cdn%>/libs/angular-material.min.css">
+    <link rel="shortcut icon" href="/favicon.png">
     <link rel="manifest" href="/manifest.json">
-    <title>Shadowsocks-Manager</title>
+    <title><%= title%></title>
+    <meta name="keywords" content="<%= keywords%>">
+    <meta name="description" content="<%= description%>">
     <base href="/">
 </head>
 
-<body ng-app="app" ng-cloak>
-    <script src="/libs/angular.min.js"></script>
-    <script src="/libs/angular-inview.js"></script>
-    <script src="/libs/angular-animate.min.js"></script>
-    <script src="/libs/angular-aria.min.js"></script>
-    <script src="/libs/angular-messages.min.js"></script>
-    <script src="/libs/angular-material.min.js"></script>
-    <script src="/libs/angular-ui-router.min.js"></script>
-    <script src="/libs/qrcode.min.js"></script>
-    <script src="/libs/angular-qr.min.js"></script>
-    <script src="/libs/ngStorage.min.js"></script>
-    <script src="/libs/Chart.min.js"></script>
-    <script src="/libs/angular-chart.min.js"></script>
-    <script src="/libs/moment.min.js"></script>
-    <script src="/libs/angular-moment.min.js"></script>
-    <script src="/libs/angular-websocket.min.js"></script>
-    <script src="/libs/marked.min.js"></script>
-    <script src="/libs/angular-marked.min.js"></script>
-
+<body ng-cloak>
+    <script src="<%= cdn%>/libs/lib.js"></script>
+    <script>
+        window.api = '';
+        window.cdn = '<%= cdn%>';
+        window.title = '<%= title%>';
+    </script>
+    <% if (analytics) { %>
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+        ga('create', '<%= analytics%>', 'auto');
+        ga('send', 'pageview');
+    </script>
+    <% } %>
     <script src="/libs/bundle.js"></script>
-    <script>window.ssmgrVersion = '<%= version%>'</script>
     <div ng-controller="MainController" layout-fill>
         <div layout-fill layout="row" layout-align="center center" ng-show="mainLoading">
             <div layout="column" layout-align="center center">
@@ -48,6 +48,9 @@
         </div>
         <div ng-hide="mainLoading" ui-view layout-fill></div>
     </div>
+    <% if (paypal) { %>
+        <script async src="https://www.paypalobjects.com/api/checkout.js"></script>
+    <% } %>
 </body>
 
 </html>

@@ -1,7 +1,6 @@
-'use strict';
-
 const knex = appRequire('init/knex').knex;
 const crypto = require('crypto');
+const macAccount = appRequire('plugins/macAccount/index');
 
 const checkPasswordLimit = {
   number: 5,
@@ -14,7 +13,7 @@ const checkExist = async (obj) => {
   if(user.length === 0) {
     return;
   } else {
-    return Promise.reject();
+    return Promise.reject('user exists');
   }
 };
 
@@ -50,7 +49,14 @@ const addUser = async (options) => {
         password: createPassword(options.password, options.username)
       });
     }
-    return knex('user').insert(insert);
+    if(options.group) {
+      Object.assign(insert, { group: options.group });
+    }
+    if(options.telegramId) {
+      Object.assign(insert, { telegram: options.telegramId });
+    }
+    const user = await knex('user').insert(insert);
+    return user;
   } catch(err) {
     console.log(err);
     return Promise.reject(err);
@@ -120,17 +126,17 @@ const getUsers = async () => {
   return users;
 };
 
-const getRecentSignUpUsers = async (number) => {
-  const users = await knex('user').select().where({
-    type: 'normal',
-  }).orderBy('createTime', 'desc').limit(number);
+const getRecentSignUpUsers = async (number, group) => {
+  const where = { type: 'normal' };
+  if(group >= 0) { where.group = group; }
+  const users = await knex('user').select().where(where).orderBy('createTime', 'desc').limit(number);
   return users;
 };
 
-const getRecentLoginUsers = async (number) => {
-  const users = await knex('user').select().where({
-    type: 'normal',
-  }).orderBy('lastLogin', 'desc').limit(number);
+const getRecentLoginUsers = async (number, group) => {
+  const where = { type: 'normal' };
+  if(group >= 0) { where.group = group; }
+  const users = await knex('user').select().where(where).orderBy('lastLogin', 'desc').limit(number);
   return users;
 };
 
@@ -145,6 +151,17 @@ const getOneUser = async (id) => {
   return user[0];
 };
 
+const getOneAdmin = async (id) => {
+  const user = await knex('user').select().where({
+    type: 'admin',
+    id,
+  }).where('id', '>', 1);
+  if(!user.length) {
+    return Promise.reject('User not found');
+  }
+  return user[0];
+};
+
 const getUserAndPaging = async (opt = {}) => {
 
   const search = opt.search || '';
@@ -152,9 +169,33 @@ const getUserAndPaging = async (opt = {}) => {
   const sort = opt.sort || 'id_asc';
   const page = opt.page || 1;
   const pageSize = opt.pageSize || 20;
+  const type = opt.type || ['normal'];
+  const group = opt.hasOwnProperty('group') ? opt.group : -1;
 
-  let count = knex('user').select().where({ type: 'normal' });
-  let users = knex('user').select().where({ type: 'normal' });
+  let count = knex('user').select()
+  .where('id', '>', 1)
+  .whereIn('type', type);
+
+  let users = knex('user').select([
+    'user.id as id',
+    'user.username as username',
+    'user.email as email',
+    'user.telegram as telegram',
+    'user.password as password',
+    'user.type as type',
+    'user.createTime as createTime',
+    'user.lastLogin as lastLogin',
+    'user.resetPasswordId as resetPasswordId',
+    'user.resetPasswordTime as resetPasswordTime',
+    'account_plugin.port as port',
+  ]).leftJoin('account_plugin', 'user.id', 'account_plugin.userId')
+  .where('user.id', '>', 1)
+  .whereIn('user.type', type).groupBy('user.id');
+
+  if(group >= 0) {
+    count = count.where({ 'user.group': group });
+    users = users.where({ 'user.group': group });
+  }
   if(search) {
     count = count.where('username', 'like', `%${ search }%`);
     users = users.where('username', 'like', `%${ search }%`);
@@ -172,6 +213,47 @@ const getUserAndPaging = async (opt = {}) => {
   };
 };
 
+const deleteUser = async userId => {
+  if(!userId) {
+    return Promise.reject('invalid userId');
+  }
+  const existAccount = await knex('account_plugin').select().where({
+    userId,
+  });
+  if(existAccount.length) {
+    return Promise.reject('delete user fail');
+  }
+  const macAccounts = await macAccount.getAccountByUserId(userId);
+  if(macAccounts.length) {
+    macAccounts.forEach(f => {
+      macAccount.deleteAccount(f.id);
+    });
+  }
+  const deleteCount = await knex('user').delete().where({
+    id: userId,
+  }).where('id', '>', 1);
+  if(deleteCount >= 1) {
+    return;
+  } else {
+    return Promise.reject('delete user fail');
+  }
+};
+
+const changePassword = async (userId, oldPassword, newPassword) => {
+  const userInfo = await knex('user').where({
+    id: userId,
+  }).then(user => {
+    if(!user.length) { return Promise.reject('user not found'); }
+    return user[0];
+  });
+  await checkPassword(userInfo.username, oldPassword);
+  await editUser({
+    id: userId, 
+  }, {
+    password: newPassword,
+  });
+};
+
 exports.add = addUser;
 exports.edit = editUser;
 exports.checkPassword = checkPassword;
@@ -179,4 +261,7 @@ exports.get = getUsers;
 exports.getRecentSignUp = getRecentSignUpUsers;
 exports.getRecentLogin = getRecentLoginUsers;
 exports.getOne = getOneUser;
+exports.getOneAdmin = getOneAdmin;
 exports.getUserAndPaging = getUserAndPaging;
+exports.delete = deleteUser;
+exports.changePassword = changePassword;

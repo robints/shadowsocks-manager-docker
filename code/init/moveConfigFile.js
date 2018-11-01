@@ -1,10 +1,8 @@
-'use strict';
-
 const os = require('os');
 const fs = require('fs');
 const fse = require('fs-extra');
 const path = require('path');
-const ssmgrPath = path.resolve(os.homedir() + '/.ssmgr/');
+const ssmgrPath = path.resolve(os.homedir(), './.ssmgr/');
 
 const configFiles = [
   'default.yml',

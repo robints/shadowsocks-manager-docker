@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 
 services:
   shadowsocks-manager:
@@ -9,6 +9,7 @@ services:
       - "4001:4001"
       - "4002:4002"
       - "9001:9001"
+      - "50000-60000:50000-60000"
     volumes: 
       - $PWD/supervisor:/etc/supervisor
       - $PWD/config:/etc/shadowsocks
